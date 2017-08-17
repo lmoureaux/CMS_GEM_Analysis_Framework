@@ -234,7 +234,7 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
 
         return
 
-    def run(self, fHVPt, inputFile, outprefix, zTrim=0.):
+    def run(self, fHVPt, inputFile, outprefix, zTrim=0., detNameOverride=""):
         #Calculate the original gain map of the detector, needed to determine gain at fHVOrGain
         self.calcGainMap()
 
@@ -302,6 +302,9 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         vToQm = 0.05
 
         detName = self.NAME_DET_DUT
+        if type(detNameOverride) == str and len(detNameOverride) > 0:
+            detName = detNameOverride
+
         yLabel = 'threshold-ztrim*noise [fC]'
         if zTrim == 0:
             yLabel = 'threshold [fC]'
@@ -364,10 +367,13 @@ if __name__ == "__main__":
                       help="Specify the p value of the trim", metavar="ztrim")
     parser.add_option("--hvpt", type="float", dest="hvpt", default=655.,
                       help="Specify HV point", metavar="hvpt")
+    parser.add_option("--detNameOverride", type="string", dest="detNameOverride",
+                      help="Override the detector name", metavar="name")
     (options, args) = parser.parse_args()
 
     predictor = AnalysisSuiteThresholdVsESC(options.config, debug=options.debug)
     predictor.run(options.hvpt,
                   options.infilename,
                   options.outprefix,
-                  zTrim = options.ztrim)
+                  zTrim = options.ztrim,
+                  detNameOverride = options.detNameOverride)
