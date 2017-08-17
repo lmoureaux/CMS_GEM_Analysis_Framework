@@ -336,6 +336,12 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         canvas.Update()
         canvas.SaveAs(outprefix + '-hot.png')
 
+        hotHistogram.SetTitle('%s (hot and not hot channels);Expected Signal Charge MPV [fC];mu-ztrim*sigma [fC]'%detName)
+        hotHistogram.Add(notHotHistogram)
+        hotHistogram.Draw('colz')
+        canvas.Update()
+        canvas.SaveAs(outprefix + '-all.png')
+
 if __name__ == "__main__":
     r.gROOT.SetBatch(True)
 
