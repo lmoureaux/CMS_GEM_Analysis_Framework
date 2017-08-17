@@ -309,8 +309,8 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         if zTrim == 0:
             yLabel = 'threshold [fC]'
 
-        notHotHistogram = r.TH2D('%s_notHot'%detName, '%s (not masked);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        hotHistogram = r.TH2D('%s_hot'%detName, '%s (hot);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        notHotHistogram = r.TH2D('notHot', '%s (not masked);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        hotHistogram = r.TH2D('hot', '%s (hot);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
 
         # Read S-curve fit tree and fill histograms
         inF = r.TFile(inputFile, 'READ')

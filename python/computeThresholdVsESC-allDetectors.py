@@ -47,7 +47,10 @@ print 'Config files: ' + configBasePath % '<config.cfg>'
 # Script base directory, will be used to locate computeThresholdVsESC.py
 pythonDir = os.path.dirname(os.path.abspath(__file__))
 
+haddCommand = ['hadd', '-f', 'allDetectorsCombined.root']
+
 for det in config.detectors:
+    print '### ' + det.serialNumber
     command = ['python2.7', '%s/computeThresholdVsESC.py' % pythonDir]
     if options.debug:
         command.append('--debug')
@@ -57,5 +60,8 @@ for det in config.detectors:
     command.append('--hvpt=%f' % det.hvpt)
     command.append('--detNameOverride=%s' % det.serialNumber)
     command.append('--outprefix=%s' % det.serialNumber.replace('/', ''))
-    print '### ' + det.serialNumber
     runCommand(command)
+    haddCommand.append('%s.root' % det.serialNumber.replace('/', ''))
+
+print '### Summing...'
+runCommand(haddCommand)
