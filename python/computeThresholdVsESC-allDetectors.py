@@ -11,7 +11,10 @@ import os
 from collections import namedtuple
 from optparse import OptionParser
 
+import ROOT as r
 from gempython.utils.wrappers import runCommand
+
+r.gROOT.SetBatch(True)
 
 parser = OptionParser()
 parser.add_option("-d", "--debug", action="store_true", dest="debug",
@@ -65,3 +68,20 @@ for det in config.detectors:
 
 print '### Summing...'
 runCommand(haddCommand)
+
+print '### Extracting combined plots...'
+
+def drawAndSave(histogram, filename, title):
+    canvas = r.TCanvas('canv', 'canv', 500, 500)
+    r.gStyle.SetOptStat(0)
+    histogram.SetTitle(title)
+    histogram.Draw('colz')
+    canvas.Update()
+    canvas.SaveAs(filename)
+
+sumFile = r.TFile('allDetectorsCombined.root')
+drawAndSave(sumFile.hot, 'allDetectorsCombined-hot.png', 'All Detectors Combined (hot)')
+drawAndSave(sumFile.notHot, 'allDetectorsCombined-notHot.png', 'All Detectors Combined (not hot)')
+allHits = sumFile.hot
+allHits.Add(sumFile.notHot)
+drawAndSave(allHits, 'allDetectorsCombined-all.png', 'All Detectors Combined (hot and not hot)')
