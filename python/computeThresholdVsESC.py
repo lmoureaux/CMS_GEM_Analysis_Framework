@@ -302,9 +302,12 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         vToQm = 0.05
 
         detName = self.NAME_DET_DUT
+        yLabel = 'threshold-ztrim*noise [fC]'
+        if zTrim == 0:
+            yLabel = 'threshold [fC]'
 
-        notHotHistogram = r.TH2D('%s_notHot'%detName, '%s (not masked);Expected Signal Charge MPV [fC];mu-ztrim*sigma [fC]'%detName,64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
-        hotHistogram = r.TH2D('%s_hot'%detName, '%s (hot);Expected Signal Charge MPV [fC];mu-ztrim*sigma [fC]'%detName,64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        notHotHistogram = r.TH2D('%s_notHot'%detName, '%s (not masked);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
+        hotHistogram = r.TH2D('%s_hot'%detName, '%s (hot);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
 
         # Read S-curve fit tree and fill histograms
         inF = r.TFile(inputFile, 'READ')
@@ -336,7 +339,7 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         canvas.Update()
         canvas.SaveAs(outprefix + '-hot.png')
 
-        hotHistogram.SetTitle('%s (hot and not hot channels);Expected Signal Charge MPV [fC];mu-ztrim*sigma [fC]'%detName)
+        hotHistogram.SetTitle('%s (hot and not hot channels);Expected Signal Charge MPV [fC];%s'%(detName,yLabel))
         hotHistogram.Add(notHotHistogram)
         hotHistogram.Draw('colz')
         canvas.Update()
