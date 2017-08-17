@@ -25,7 +25,7 @@ from Utilities import *
 from ROOT import gROOT, TArrayD, TF1, TFile, TGraph, TGraph2D, TGraphErrors, TH2F, TRandom2
 import ROOT as r
 
-class AnalysisSuiteOpThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
+class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
     #Here inputfilename should be a tab delimited file in the form of:
     #   field_name  value
     #
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                       help="Specify HV point", metavar="hvpt")
     (options, args) = parser.parse_args()
 
-    predictor = AnalysisSuiteOpThresholdVsESC(options.config, debug=options.debug)
+    predictor = AnalysisSuiteThresholdVsESC(options.config, debug=options.debug)
     predictor.run(options.hvpt,
                   options.infilename,
                   options.outprefix,
