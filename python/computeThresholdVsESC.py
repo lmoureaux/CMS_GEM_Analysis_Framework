@@ -15,6 +15,7 @@ import root_numpy as rp
 #from scipy import interpolate
 
 #Python Toolkit Imports
+from anautilities import *
 from AnalysisSuiteEfficiencyPredictor import *
 from AnalysisSuiteGainMap import *
 from AnalysisSuiteClusterCharge import *
@@ -258,7 +259,10 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         #Close TFiles that have been opened by self.ANASUITEGAIN
 	
         #Create a dictionary where the coordinate point (x,y) is mapped to the (gain, Norm <CS>)
-        dict_Coords_GainAndNormAvgCS = {(idx[0],idx[1]):[idx[2]] for idx in data_Gain}
+        dict_Coords_GainAndNormAvgCS = {}
+        for idx in data_Gain:
+            dict_Coords_GainAndNormAvgCS[(idx[0],idx[1])] = [idx[2]]
+
         for idx in data_NormAvgCS:
             if (idx[0],idx[1]) in dict_Coords_GainAndNormAvgCS:
             	dict_Coords_GainAndNormAvgCS[(idx[0],idx[1])].append(idx[2])
@@ -292,7 +296,7 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
 
             #Save Landau MPV for relevant channels
             vfat = iEtaiPhiToVfatN[coordPt_iEtaiPhi[0]-1][coordPt_iEtaiPhi[1]-1]
-            for chan in range(coordPt_iStripRange[0], coordPt_iStripRange[1]):
+            for chan in range(coordPt_iStripRange[0], coordPt_iStripRange[1]+1):
                 landauMPV[vfat][chan] = fLandauMPV
                 pass
             pass
@@ -312,6 +316,17 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         notHotHistogram = r.TH2D('notHot', '%s (not masked);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
         hotHistogram = r.TH2D('hot', '%s (hot);Expected Signal Charge MPV [fC];%s'%(detName,yLabel),64,4,8,64,vToQm*-0.5+vToQb,vToQm*255.5+vToQb)
 
+        snrHistogram = r.TH1D('snr', 'SNR distribution;SNR;Channels', 100, 0, 16000)
+        snrHistogramHot = r.TH1D('snrHot', 'SNR distribution (hot);SNR;Channels', 100, 0, 16000)
+        snrHistogramNotHot = r.TH1D('snrNotHot', 'SNR distribution (not hot);SNR;Channels', 100, 0, 16000)
+
+        snrPlots = [ r.TH1D('snr%d'%vfat, 'VFAT %d;Strip;SNR'%vfat, 128, -0.5, 127.5)
+                        for vfat in range(24) ]
+        noisePlots = [ r.TH1D('noise%d'%vfat, 'VFAT %d;Strip;Noise [fC]'%vfat, 128, -0.5, 127.5)
+                        for vfat in range(24) ]
+        escPlots = [ r.TH1D('esc%d'%vfat, 'VFAT %d;Strip;ESC [fC]'%vfat, 128, -0.5, 127.5)
+                        for vfat in range(24) ]
+
         # Read S-curve fit tree and fill histograms
         inF = r.TFile(inputFile, 'READ')
         for event in inF.scurveFitTree:
@@ -323,12 +338,33 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
                 notHotHistogram.Fill(mpv, vToQm*opThreshold+vToQb)
             elif event.maskReason == 0x01:
                 hotHistogram.Fill(mpv, vToQm*opThreshold+vToQb)
+            else:
+                continue
+
+            if event.noise != 0:
+                snr = (mpv / vToQm / event.noise)**2
+                snrPlots[vfat].SetBinContent(chan, snr)
+                snrHistogram.Fill(snr)
+                if not event.mask:
+                    snrHistogramNotHot.Fill(snr)
+                else:
+                    snrHistogramHot.Fill(snr)
+            noisePlots[vfat].SetBinContent(chan, vToQm * event.noise)
+            escPlots[vfat].SetBinContent(chan, mpv)
             pass
 
         # Write
         outF = r.TFile(outprefix + '.root', 'RECREATE')
         notHotHistogram.Write()
         hotHistogram.Write()
+        snrHistogram.Write()
+        snrHistogramHot.Write()
+        snrHistogramNotHot.Write()
+        for vfat in range(24):
+            snrPlots[vfat].Write()
+            noisePlots[vfat].Write()
+            escPlots[vfat].Write()
+            pass
         outF.Close()
 
         canvas = r.TCanvas('canv', 'canv', 500, 500)
@@ -342,11 +378,22 @@ class AnalysisSuiteThresholdVsESC(AnalysisSuiteEfficiencyPredictor):
         canvas.Update()
         canvas.SaveAs(outprefix + '-hot.png')
 
+        snrHistogram.Draw('colz')
+        canvas.Update()
+        canvas.SaveAs(outprefix + '-snr.png')
+
         hotHistogram.SetTitle('%s (hot and not hot channels);Expected Signal Charge MPV [fC];%s'%(detName,yLabel))
         hotHistogram.Add(notHotHistogram)
         hotHistogram.Draw('colz')
         canvas.Update()
         canvas.SaveAs(outprefix + '-all.png')
+
+        canvas = make3x8Canvas('canv', snrPlots)
+        canvas.SaveAs(outprefix + '-snrSummary.png')
+        canvas = make3x8Canvas('canv', noisePlots)
+        canvas.SaveAs(outprefix + '-noiseSummary.png')
+        canvas = make3x8Canvas('canv', escPlots)
+        canvas.SaveAs(outprefix + '-escSummary.png')
 
 if __name__ == "__main__":
     r.gROOT.SetBatch(True)

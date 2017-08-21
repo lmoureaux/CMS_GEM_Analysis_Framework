@@ -82,6 +82,9 @@ def drawAndSave(histogram, filename, title):
 sumFile = r.TFile('allDetectorsCombined.root')
 drawAndSave(sumFile.hot, 'allDetectorsCombined-hot.png', 'All Detectors Combined (hot)')
 drawAndSave(sumFile.notHot, 'allDetectorsCombined-notHot.png', 'All Detectors Combined (not hot)')
+drawAndSave(sumFile.snr, 'allDetectorsCombined-snr.png', 'SNR (All Detectors Combined)')
+drawAndSave(sumFile.snrHot, 'allDetectorsCombined-snrHot.png', 'SNR (Hot, All Detectors Combined)')
+drawAndSave(sumFile.snrNotHot, 'allDetectorsCombined-snrNotHot.png', 'SNR (Not Hot, All Detectors Combined)')
 allHits = sumFile.hot
 allHits.Add(sumFile.notHot)
 drawAndSave(allHits, 'allDetectorsCombined-all.png', 'All Detectors Combined (hot and not hot)')
